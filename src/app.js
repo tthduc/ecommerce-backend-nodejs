@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const helmet = require("helmet");
@@ -8,6 +9,8 @@ const app = express();
 app.use(morgan("dev"));
 app.use(helmet());
 app.use(compression());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // init db
 require("./dbs/init.mongodb.js");
@@ -15,6 +18,7 @@ require("./dbs/init.mongodb.js");
 // checkOverload();
 
 // init router
+app.use('/', require('./routes'))
 
 // handling error
 
