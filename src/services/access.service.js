@@ -3,6 +3,7 @@
 const shopModel = require('../models/shop.model');
 const keyTokenService = require('../services/keyToken.service');
 const { createTokenPair } = require('../auth/authUtils');
+const { getInfoData } = require('../utils');
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
 const roleShop = {
@@ -37,14 +38,27 @@ class AccessService {
                 // create private and publickey key for shop
                 const {privateKey, publicKey} = await crypto.generateKeyPairSync('rsa', {
                     modulusLength: 4096,
+                    publicKeyEncoding: {
+                        type: 'spki',
+                        format: 'pem'
+                    },
+                    privateKeyEncoding: {
+                        type: 'pkcs8',
+                        format: 'pem'
+                    }
                 })
 
-                const publicKeyString = await keyTokenService.createKeyToken({
-                    userId: newShop._id,
-                    publicKey: publicKey
-                });
+                // create private and publickey key for shop V2
+                // const privateKey = crypto.getRandomValues(64).toString('hex');
+                // const publicKey = crypto.getRandomValues(64).toString('hex');
 
-                console.log("publicKeyString:", publicKeyString);
+                // // create public key token
+                // const publicKeyString = await keyTokenService.createKeyToken({
+                //     userId: newShop._id,
+                //     publicKey
+                //     privateKey
+                // });
+
                 if (!publicKeyString) {
                     return {
                         code: '20002',
@@ -52,14 +66,15 @@ class AccessService {
                     };
                 }
 
+                // create public key object
+                const publicKeyObject = crypto.createPublicKey(publicKeyString);
+
                 // create token pair
                 const tokens = await createTokenPair(
                     {userId: newShop._id, email: newShop.email},
-                    publicKeyString,
+                    publicKeyObject,
                     privateKey
                 );
-                console.log("TOKENS:", tokens);
-                console.log("NEWSHOP:", newShop);
 
                 if (!tokens) {
                     return {
@@ -71,7 +86,7 @@ class AccessService {
                 return {
                     code: '20001',
                     metadata: {
-                        shop: newShop,
+                        shop: getInfoData({fields: ['id', 'name', 'email'], object: newShop}),
                         tokens
                     }
                 };
