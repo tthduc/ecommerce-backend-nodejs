@@ -4,6 +4,8 @@ const shopModel = require('../models/shop.model');
 const keyTokenService = require('../services/keyToken.service');
 const { createTokenPair } = require('../auth/authUtils');
 const { getInfoData } = require('../utils');
+const { ConflicRequestError, BadRequestError } = require('../core/error.response');
+
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
 const roleShop = {
@@ -15,15 +17,12 @@ const roleShop = {
 
 class AccessService {
     static signUp = async ({ name, email, password }) => {
-        try {
+        // try {
             // check email exists
             // use lean to get plain JavaScript object better than not use lean
             const hodelShop = await shopModel.findOne({ email }).lean();
             if (hodelShop) {
-                return {
-                    code: '20002',
-                    metadata: { message: 'Email already exists' }
-                };
+                throw new ConflicRequestError('Email already exists');
             }
 
             // hash password use 10 to salt rounds
@@ -60,10 +59,7 @@ class AccessService {
                 // });
 
                 if (!publicKeyString) {
-                    return {
-                        code: '20002',
-                        metadata: { message: 'Error creating public key token' }
-                    };
+                    throw new BadRequestError('Error creating public key token');
                 }
 
                 // create public key object
@@ -77,10 +73,7 @@ class AccessService {
                 );
 
                 if (!tokens) {
-                    return {
-                        code: '20002',
-                        metadata: { message: 'Error creating token pair' }
-                    };
+                    throw new BadRequestError('Error creating token pair');
                 }
                 
                 return {
@@ -92,12 +85,12 @@ class AccessService {
                 };
             }
 
-        } catch (error) {
-            return {
-                code: '20002',
-                metadata: { message: error.message }
-            };
-        }
+        // } catch (error) {
+        //     return {
+        //         code: '20002',
+        //         metadata: { message: error.message }
+        //     };
+        // }
     }
 }
 
