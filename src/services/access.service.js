@@ -52,11 +52,11 @@ class AccessService {
                 // const publicKey = crypto.getRandomValues(64).toString('hex');
 
                 // // create public key token
-                // const publicKeyString = await keyTokenService.createKeyToken({
-                //     userId: newShop._id,
-                //     publicKey
-                //     privateKey
-                // });
+                const publicKeyString = await keyTokenService.createKeyToken({
+                    userId: newShop._id,
+                    publicKey,
+                    privateKey
+                });
 
                 if (!publicKeyString) {
                     throw new BadRequestError('Error creating public key token');
