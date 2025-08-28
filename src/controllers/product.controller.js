@@ -7,7 +7,11 @@ class ProductController{
         const { product_type } = req.body;
         return CREATED.send(res, {
             message: 'Product created successfully',
-            metadata: await ProductService.createProduct(product_type, req.body)
+            metadata: await ProductService.createProduct(
+                product_type, {
+                ...req.body,
+                product_shop: req.keyStore.userId
+            })
         });
     }
 }

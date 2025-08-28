@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema({
   product_description: { type: String },
   product_price: { type: Number, required: true },
   product_quantity: { type: Number, required: true },
-  product_type: { type: String, required: true, enum: ['clothing', 'accessories', 'electronics'] },
+  product_type: { type: String, required: true, enum: ['Clothing', 'accessories', 'Electronics'] },
   product_attributes: { type: Schema.Types.Mixed, required: true },
   product_shop: { type: Schema.Types.ObjectId, ref: 'Shop', required: true }
 }, {
@@ -35,7 +35,8 @@ const clothingSchema = new Schema({
 const electronicsSchema = new Schema({
     manufacturer: {type: String, required: true},
     model: {type: String, required: true},
-    color: {type: String, required: true}
+    color: {type: String, required: true},
+    product_shop: {type: Schema.Types.ObjectId, ref: 'Shop', required: true}
 }, {
     collection: 'electronics',
     timestamps: true

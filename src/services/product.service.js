@@ -3,14 +3,23 @@
 const { product, clothing, electronics } = require('../models/product.model')
 const { BadRequestError } = require('../core/error.response');
 
+/**
+    - Tách biệt logic khởi tạo → gom việc tạo object về một nơi (ProductFactory).
+    - Nhất quán → tất cả sản phẩm đều kế thừa Product, mỗi loại override theo nhu cầu.
+    - Dễ mở rộng (OCP) → thêm loại mới (Furniture…) chỉ cần tạo subclass + update Factory.
+    - Giảm lỗi & dễ test → kiểm soát type, throw lỗi nếu không hợp lệ.
+    - Phù hợp e-commerce/domain phức tạp → mỗi loại sản phẩm có attribute riêng, dễ quản lý.
+    👉 Nói ngắn gọn: Factory Pattern giúp tạo object nhiều loại một cách chuẩn hóa, dễ mở rộng, dễ bảo trì, và tránh duplicate code.
+ */
+
 // define Factory class to create product
 class ProductFactory {
     static createProduct(type, data) {
         switch (type) {
         case 'Clothing':
-            return new Clothing(data);
+            return new Clothing(data).createProduct();
         case 'Electronics':
-            return new Electronics(data);
+            return new Electronics(data).createProduct();
         default:
             throw new BadRequestError('Invalid product type');
         }
@@ -29,8 +38,8 @@ class Product {
         this.product_shop = data.product_shop;
     }
 
-    async createProduct() {
-        return await product.create(this)
+    async createProduct(product_id) {
+        return await product.create({...this, _id: product_id})
     }
 }
 
@@ -50,10 +59,13 @@ class Clothing extends Product {
 // define sub-class for different product types electronics
 class Electronics extends Product {
     async createProduct() {
-        const newElectronics = await electronics.create(this.product_attributes)
+        const newElectronics = await electronics.create({
+            ...this.product_attributes,
+            product_shop: this.product_shop
+        })
         if (!newElectronics) throw new BadRequestError('Create electronics failed')
 
-        const newProduct = await super.createProduct()
+        const newProduct = await super.createProduct(newElectronics._id)
         if (!newProduct) throw new BadRequestError('Create product failed')
 
         return newProduct
