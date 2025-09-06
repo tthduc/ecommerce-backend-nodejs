@@ -2,6 +2,7 @@
 
 const { product, clothing, electronics } = require('../models/product.model')
 const { BadRequestError } = require('../core/error.response');
+const { findAllDraftsForShop, findAllPublishedForShop, publishProductByShop } = require('../models/repositories/product.repo')
 
 /**
     - Tách biệt logic khởi tạo → gom việc tạo object về một nơi (ProductFactory).
@@ -18,7 +19,7 @@ const { BadRequestError } = require('../core/error.response');
 class ProductFactory {
     static productRegistry = {}
 
-    static registerProducType(type, classRef) {
+    static registerProductType(type, classRef) {
         ProductFactory.productRegistry[type] = classRef;
     }
 
@@ -27,6 +28,22 @@ class ProductFactory {
         if (!productClass) throw new BadRequestError('Invalid product type');
 
         return new productClass(data).createProduct();
+    }
+
+    static async findAllDraftsForShop({ product_shop, limit = 50, skip = 0 }) {
+        return await findAllDraftsForShop({ product_shop, limit, skip });
+    }
+
+    static async findAllPublishedForShop({ product_shop, limit = 50, skip = 0 }) {
+        return await findAllPublishedForShop({ product_shop, limit, skip });
+    }
+
+    static async publishProductByShop({ product_id, product_shop }) {
+        return await publishProductByShop({ product_id, product_shop });
+    }
+
+    static async unPublishProductByShop({ product_id, product_shop }) {
+        return await unPublishProductByShop({ product_id, product_shop });
     }
 }
 
