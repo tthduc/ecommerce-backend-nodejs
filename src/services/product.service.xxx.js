@@ -2,7 +2,15 @@
 
 const { product, clothing, electronics } = require('../models/product.model')
 const { BadRequestError } = require('../core/error.response');
-const { findAllDraftsForShop, findAllPublishedForShop, publishProductByShop } = require('../models/repositories/product.repo')
+const { 
+    findAllDraftsForShop, 
+    findAllPublishedForShop, 
+    publishProductByShop, 
+    unPublishProductByShop,
+    searchProducts,
+    findAllProducts,
+    findProductById
+} = require('../models/repositories/product.repo')
 
 /**
     - Tách biệt logic khởi tạo → gom việc tạo object về một nơi (ProductFactory).
@@ -30,6 +38,10 @@ class ProductFactory {
         return new productClass(data).createProduct();
     }
 
+    static updateProduct({ product_id, payload }) {
+        throw new Error('Method not implemented yet');
+    }
+
     static async findAllDraftsForShop({ product_shop, limit = 50, skip = 0 }) {
         return await findAllDraftsForShop({ product_shop, limit, skip });
     }
@@ -44,6 +56,18 @@ class ProductFactory {
 
     static async unPublishProductByShop({ product_id, product_shop }) {
         return await unPublishProductByShop({ product_id, product_shop });
+    }
+
+    static async searchProducts({ keySearch }) {
+       return await searchProducts({ keySearch });
+    }
+
+    static async findAllProducts({ limit = 50, sort = 'ctime', page = 1, filter = { isPublished: true } }) {
+        return await findAllProducts({ limit, sort, page, filter, select: ['_id', 'product_name', 'product_thumb', 'product_price', 'product_quantity', 'product_type'] });
+    }
+
+    static async findProductById({ product_id, unselect = [] }) {
+        return await findProductById({ product_id, unselect:['__v'] });
     }
 }
 

@@ -77,3 +77,6 @@ module.exports = {
     electronics: mongoose.model('Electronics', electronicsSchema),
     furniture: mongoose.model('Furniture', furnitureSchema)
 }
+
+// create index for search
+productSchema.index({ product_name: 'text', product_description: 'text' });

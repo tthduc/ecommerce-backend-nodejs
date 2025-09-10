@@ -74,6 +74,29 @@ class ProductController{
             metadata: await ProductServiceV2.unPublishProductByShop({ product_id, product_shop })
         });
     }
+
+    searchProducts = async (req, res, next) => {
+        return Ok.send(res, {
+            message: 'Search products successfully',
+            metadata: await ProductServiceV2.searchProducts(req.params)
+        });
+    }
+
+    findAllProducts = async (req, res, next) => {
+        const { limit, sort, page } = req.query;
+
+        return Ok.send(res, {
+            message: 'Find all products successfully',
+            metadata: await ProductServiceV2.findAllProducts({ limit, sort, page })
+        });
+    }
+
+    findProductById = async (req, res, next) => {
+        return Ok.send(res, {
+            message: 'Find product by id successfully',
+            metadata: await ProductServiceV2.findProductById(req.params)
+        });
+    }
 }
 
 module.exports = new ProductController();

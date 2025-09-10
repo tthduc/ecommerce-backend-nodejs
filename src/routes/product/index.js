@@ -6,6 +6,11 @@ const productController = require('./../../controllers/product.controller.js')
 const { asyncHandler } = require('./../../auth/checkAuth.js')
 const { authenticationV2 } = require('./../../auth/authUtils.js') 
 
+// search products
+router.get('/search/:keySearch', asyncHandler(productController.searchProducts));
+router.get('/', asyncHandler(productController.findAllProducts));
+router.get('/:product_id', asyncHandler(productController.findProductById));
+
 // authentication
 router.use(authenticationV2)
 

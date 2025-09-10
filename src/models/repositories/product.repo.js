@@ -1,6 +1,7 @@
 'use strict'
 
-const { product, clothing, electronics } = require('../../models/product.model')
+const { product } = require('../../models/product.model')
+const { getSelectData, getUnSelectData } = require('../../utils');
 
 const findAllDraftsForShop = async ({ product_shop, limit = 50, skip = 0 }) => {
     return await queryProduct({ product_shop, limit, skip });
@@ -40,6 +41,37 @@ const unPublishProductByShop = async ({ product_id, product_shop }) => {
     return nModified;
 }
 
+const searchProducts = async ({ keySearch }) => {
+    return await product.find({
+        $text: { $search: new RegExp(keySearch, 'i') },
+        isPublished: true,
+    }, {
+        score: { $meta: "textScore" }
+    })
+        .sort({ score: { $meta: "textScore" } })
+        .populate('product_shop', 'name email -_id')
+        .lean()
+}
+
+const findAllProducts = async ({ limit = 50, sort = 'ctime', page = 1, filter, select }) => {
+    const skip = (page - 1) * limit;
+    const sortBy = sort === 'ctime' ? { _id: -1 } : { _id: 1 };
+
+    return await product.find(filter)
+        .sort(sortBy)
+        .skip(skip)
+        .limit(limit)
+        .select(getSelectData({ fields: select }))
+        .lean();
+}
+
+const findProductById = async ({ product_id, unselect = [] }) => {
+    return await product.findById(product_id)
+        .select(getUnSelectData({ fields: unselect }))
+        .populate('product_shop', 'name email -_id')
+        .lean()
+}
+
 const queryProduct = async ({ product_shop, limit = 50, skip = 0 }) => {
     return await product.find({ product_shop, isDraft: true })
         .populate('product_shop', 'name email -_id')
@@ -53,5 +85,8 @@ module.exports = {
     findAllDraftsForShop,
     findAllPublishedForShop,
     publishProductByShop,
-    unPublishProductByShop
+    unPublishProductByShop,
+    searchProducts,
+    findAllProducts,
+    findProductById
 }
