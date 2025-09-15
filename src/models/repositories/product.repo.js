@@ -2,6 +2,7 @@
 
 const { product } = require('../../models/product.model')
 const { getSelectData, getUnSelectData } = require('../../utils');
+const mongoose = require('mongoose');
 
 const findAllDraftsForShop = async ({ product_shop, limit = 50, skip = 0 }) => {
     return await queryProduct({ product_shop, limit, skip });
@@ -53,6 +54,7 @@ const searchProducts = async ({ keySearch }) => {
         .lean()
 }
 
+// find all products
 const findAllProducts = async ({ limit = 50, sort = 'ctime', page = 1, filter, select }) => {
     const skip = (page - 1) * limit;
     const sortBy = sort === 'ctime' ? { _id: -1 } : { _id: 1 };
@@ -65,13 +67,24 @@ const findAllProducts = async ({ limit = 50, sort = 'ctime', page = 1, filter, s
         .lean();
 }
 
-const findProductById = async ({ product_id, unselect = [] }) => {
+// find product by id
+const findProductById = async (product_id, unselect = []) => {
+    console.log('product_idxxxx', product_id);
     return await product.findById(product_id)
         .select(getUnSelectData({ fields: unselect }))
         .populate('product_shop', 'name email -_id')
         .lean()
 }
 
+const updateProductById = async ({ product_id, payload, model }) => {
+    if (!mongoose.Types.ObjectId.isValid(product_id)) {
+        throw new Error('Invalid product_id');
+    }
+
+    return await model.findByIdAndUpdate(product_id, payload, { new: true });
+}
+
+// helper function
 const queryProduct = async ({ product_shop, limit = 50, skip = 0 }) => {
     return await product.find({ product_shop, isDraft: true })
         .populate('product_shop', 'name email -_id')
@@ -88,5 +101,6 @@ module.exports = {
     unPublishProductByShop,
     searchProducts,
     findAllProducts,
-    findProductById
+    findProductById,
+    updateProductById
 }

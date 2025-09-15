@@ -97,6 +97,16 @@ class ProductController{
             metadata: await ProductServiceV2.findProductById(req.params)
         });
     }
+
+    updateProduct = async (req, res, next) => {
+        const { product_type } = req.body;
+        const product_shop = req.keyStore.userId;
+
+        return Ok.send(res, {
+            message: 'Update product successfully',
+            metadata: await ProductServiceV2.updateProduct(product_type, req.params.product_id, {...req.body, product_shop})
+        });
+    }
 }
 
 module.exports = new ProductController();

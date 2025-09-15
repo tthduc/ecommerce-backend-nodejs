@@ -9,8 +9,13 @@ const {
     unPublishProductByShop,
     searchProducts,
     findAllProducts,
-    findProductById
+    findProductById,
+    updateProductById
 } = require('../models/repositories/product.repo')
+const { 
+    removeUndefinedObject,
+    updateNestedObject
+} = require('../utils');
 
 /**
     - Tách biệt logic khởi tạo → gom việc tạo object về một nơi (ProductFactory).
@@ -38,8 +43,12 @@ class ProductFactory {
         return new productClass(data).createProduct();
     }
 
-    static updateProduct({ product_id, payload }) {
-        throw new Error('Method not implemented yet');
+    static async updateProduct(type, product_id, data) {
+        console.log('data service', data);
+        const productClass = ProductFactory.productRegistry[type];
+        if (!productClass) throw new BadRequestError('Invalid product type');
+
+        return await new productClass(data).updateProduct(product_id);
     }
 
     static async findAllDraftsForShop({ product_shop, limit = 50, skip = 0 }) {
@@ -86,6 +95,10 @@ class Product {
     async createProduct(product_id) {
         return await product.create({...this, _id: product_id})
     }
+
+    async updateProduct({ product_id, payload }) {
+       return await updateProductById({ product_id, payload, model: product })
+    }
 }
 
 // define sub-class for different product types clothing
@@ -98,6 +111,18 @@ class Clothing extends Product {
         if (!newProduct) throw new BadRequestError('Create product failed')
 
         return newProduct
+    }
+
+    async updateProduct(product_id) {
+        const objectParams = removeUndefinedObject(this); // remove undefined fields
+        if (objectParams.product_attributes) {
+            await updateProductById({ product_id, payload: updateNestedObject(objectParams.product_attributes), model: clothing })
+        }
+
+        const updateProduct = await super.updateProduct({ product_id, payload: updateNestedObject(objectParams) })
+        if (!updateProduct) throw new BadRequestError('Update product failed')
+
+        return updateProduct
     }
 }
 
