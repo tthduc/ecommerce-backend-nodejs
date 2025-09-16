@@ -12,6 +12,9 @@ const {
     findProductById,
     updateProductById
 } = require('../models/repositories/product.repo')
+
+const { insertInventory } = require('../models/repositories/inventory.repo')
+
 const { 
     removeUndefinedObject,
     updateNestedObject
@@ -93,7 +96,18 @@ class Product {
     }
 
     async createProduct(product_id) {
-        return await product.create({...this, _id: product_id})
+        console.log("xxx");
+        const newProduct = await product.create({...this, _id: product_id})
+        console.log("yyy");
+        if (newProduct) {
+            // create inventory record
+            await insertInventory({
+                inven_productId: newProduct._id,
+                inven_shopId: this.product_shop,
+                inven_stock: this.product_quantity
+            })
+            return newProduct;
+        }
     }
 
     async updateProduct({ product_id, payload }) {
