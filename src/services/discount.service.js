@@ -5,6 +5,9 @@ const {
     findAllProducts 
 } = require('../models/repositories/product.repo');
 const { 
+    checkDiscountCodeExist
+} = require('../models/repositories/discount.repo');
+const { 
     BadRequestError,
     NotFoundError
  } = require('../core/error.response');
@@ -115,8 +118,8 @@ class DiscountService {
                     product_shop: convertToObjectIdMongodb(shopId),
                     isPublished: true
                 },
-                limit: +limit,
-                page: +page,
+                limit: +limit, // convert to number
+                page: +page, // convert to number
                 sort: 'ctime',
                 select: ['product_name']
             });
@@ -144,4 +147,106 @@ class DiscountService {
 
         return discounts;
     }
+
+    // Calculate discount amount for a given order
+    static async getDiscountAmount({ code, userId, shopId, products }) {
+        const foundDiscount = await checkDiscountCodeExist(
+            Discount,
+            { 
+                discount_code: code, 
+                discount_shop_id: convertToObjectIdMongodb(shopId),
+                // discount_isActive: true,
+                // discount_start_date: { $lte: new Date() },
+                // discount_end_date: { $gte: new Date() },
+            }
+        );
+
+        if (!foundDiscount) {
+            throw new NotFoundError('Discount code not found or inactive');
+        }
+
+        if (foundDiscount.discount_isActive === false) {
+            throw new BadRequestError('Discount code is expired or inactive');
+        }
+
+        if (foundDiscount.discount_max_usage == 0) {
+            throw new BadRequestError('Discount code has reached its maximum usage limit');
+        }
+
+        if (new Date() < new Date(foundDiscount.discount_startDate) || new Date() > new Date(foundDiscount.discount_endDate)) {
+            throw new BadRequestError('Discount code is not valid at this time');
+        }
+
+        // Check if user has exceeded max uses per user
+        if (foundDiscount.discount_max_uses_per_user > 0) {
+            const userUsageCount = foundDiscount.discount_used_by.filter(id => id.toString() === userId).length;
+            if (userUsageCount >= foundDiscount.discount_max_uses_per_user) {
+                throw new BadRequestError('You have exceeded the maximum usage limit for this discount code');
+            }
+        }
+
+        // Check if total order value meets min order value
+        const totalOrderValue = products.reduce((sum, product) => sum + product.price * product.quantity, 0);
+        if (totalOrderValue < foundDiscount.discount_min_order_value) {
+            throw new BadRequestError(`Order value must be at least ${foundDiscount.discount_min_order_value} to use this discount code`);
+        }
+
+        // Calculate discount amount
+        const amount = foundDiscount.discount_type === 'fixed' ? foundDiscount.discount_value
+            : (totalOrderValue * foundDiscount.discount_value) / 100;
+
+        return {
+            totalOrderValue,
+            amount,
+            finalAmount: totalOrderValue - amount
+        };
+    }
+
+    static async deleteDiscountCode({shopId, discountId}) {
+        const deletedDiscount = await Discount.findByIdAndDelete({
+            discount_shop_id: convertToObjectIdMongodb(shopId),
+            discount_code: convertToObjectIdMongodb(discountId)
+        });
+
+        if (!deletedDiscount) {
+            throw new NotFoundError('Delete discount code failed');
+        }
+
+        return deletedDiscount;
+    }
+
+    static async cancelDiscountCode({shopId, discountId}) {
+        const foundDiscount = await checkDiscountCodeExist(
+            Discount,
+            { 
+                discount_code: discountId, 
+                discount_shop_id: convertToObjectIdMongodb(shopId),
+            }
+        );
+
+        if (!foundDiscount) {
+            throw new NotFoundError('Discount code not found or inactive');
+        }
+
+        if (foundDiscount.discount_isActive === false) {
+            throw new BadRequestError('Discount code is already cancelled');
+        }
+
+        // Set discount_isActive to false
+        const cancelledDiscount = await Discount.findByIdAndUpdate(
+            {
+                $pull: { discount_used_by: userId },
+                $inc: { discount_used_count: -1, discount_max_usage: 1 }
+            },
+            { new: true }
+        );
+
+        if (!cancelledDiscount) {
+            throw new NotFoundError('Cancel discount code failed');
+        }
+
+        return cancelledDiscount;
+    }
 }
+
+module.exports = DiscountService;
