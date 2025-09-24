@@ -69,7 +69,6 @@ const findAllProducts = async ({ limit = 50, sort = 'ctime', page = 1, filter, s
 
 // find product by id
 const findProductById = async (product_id, unselect = []) => {
-    console.log('product_idxxxx', product_id);
     return await product.findById(product_id)
         .select(getUnSelectData({ fields: unselect }))
         .populate('product_shop', 'name email -_id')

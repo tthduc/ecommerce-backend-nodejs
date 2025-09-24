@@ -19,7 +19,7 @@ const findAllDiscountCodesUnselect = async ({
         .sort(sortBy)
         .skip(skip)
         .limit(limit)
-        .select(getUnSelectData(unSelect))
+        .select(getUnSelectData({ fields: unSelect }))
         .lean();
 
     return products;

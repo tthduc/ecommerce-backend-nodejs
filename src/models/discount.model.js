@@ -38,7 +38,6 @@ var discountSchema = new mongoose.Schema({
     },
     discount_shopId:{
         type:mongoose.Schema.Types.ObjectId,
-        required:true,
         ref:'Shop',
     },
     discount_applied_products:{ // danh sach san pham ap dung

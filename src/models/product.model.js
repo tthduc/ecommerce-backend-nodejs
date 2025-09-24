@@ -25,8 +25,8 @@ const productSchema = new mongoose.Schema({
         set: val => Math.round(val * 10) / 10 
     },
     product_variations: [{ type: Array, default: [] }],
-    isDraft: { type: Boolean, default: true, index: true, select: true },
-    isPublished: { type: Boolean, default: false, index: true, select: false }
+    isDraft: { type: Boolean, default: true, index: true },
+    isPublished: { type: Boolean, default: false, index: true }
 }, {
     timestamps: true,
     collection: COLLECTION_NAME
