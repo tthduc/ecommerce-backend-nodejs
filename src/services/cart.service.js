@@ -77,14 +77,20 @@ class CartService {
         });
     }
 
-    static async removeFromCart(userId, productId) {
-        // Logic to remove product from cart
-        return { userId, productId };
+    static async removeFromCart({userId, productId}) {
+        const query = { cart_userId: userId, cart_status: 'active' };
+        const updateSet = {
+            $pull: { 
+                cart_products: { productId } 
+            }
+        };
+        const options = { new: true };
+
+        return await cart.findOneAndUpdate(query, updateSet, options);
     }
 
-    static async getCart(userId) {
-        // Logic to get user's cart
-        return { userId, items: [] };
+    static async getListCart({userId}) {
+        return await cart.findOne({ cart_userId: userId, cart_status: 'active' }).lean();
     }
 }
 
