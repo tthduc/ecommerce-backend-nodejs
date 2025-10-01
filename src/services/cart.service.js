@@ -1,6 +1,8 @@
 'use strict';
 
 const cart = require('../models/cart.model');
+const { findProductById } = require('../models/repositories/product.repo');
+const { NotFoundError } = require('../core/error.response');
 
 class CartService {
     static async createCart({userId, product}) {
@@ -48,6 +50,31 @@ class CartService {
 
         // If cart and product exists, increase quantity
         return await this.updateCartQuantity({userId, product});
+    }
+
+    static async addToCartV2({userId, shop_order_ids = {}}) {
+        const { productId, quantity, oldQuantity } = shop_order_ids[0]?.item_products[0] || {};
+
+        // Validate product exists
+        const foundProduct = await findProductById(productId);
+        if (!foundProduct) throw new NotFoundError('Product not found');
+
+        // Validate product belongs to the specified shop
+        if (foundProduct.product_shop.toString() !== shop_order_ids[0]?.shopId) {
+            throw new NotFoundError('Product does not belong to the specified shop');
+        }
+
+        if (quantity <= 0) {
+            throw new NotFoundError('Quantity must be greater than zero');
+        }
+
+        return await this.updateCartQuantity({
+            userId, 
+            product: {
+                productId, 
+                quantity: quantity - (oldQuantity || 0)
+            }
+        });
     }
 
     static async removeFromCart(userId, productId) {
