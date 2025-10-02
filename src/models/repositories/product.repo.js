@@ -2,6 +2,7 @@
 
 const { product } = require('../../models/product.model')
 const { getSelectData, getUnSelectData } = require('../../utils');
+const { BadRequestError } = require('../../core/error.response');
 const mongoose = require('mongoose');
 
 const findAllDraftsForShop = async ({ product_shop, limit = 50, skip = 0 }) => {
@@ -13,6 +14,8 @@ const findAllPublishedForShop = async ({ product_shop, limit = 50, skip = 0 }) =
 }
 
 const publishProductByShop = async ({ product_id, product_shop }) => {
+    console.log('product_id', product_id);
+    console.log('product_shop', product_shop);
     const foundProduct = await product.findOne({ _id: product_id, product_shop });
     if (!foundProduct) throw new BadRequestError('Product not found');
 
@@ -101,6 +104,5 @@ module.exports = {
     searchProducts,
     findAllProducts,
     findProductById,
-    updateProductById,
-    getProductById
+    updateProductById
 }

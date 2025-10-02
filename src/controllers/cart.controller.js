@@ -22,7 +22,7 @@ class CartController {
     remove = async (req, res, next) => {
         return Ok.send(res, {
             message: 'removed cart successfully',
-            metadata: await CartService.remove(req.body)
+            metadata: await CartService.removeFromCart(req.body)
         });
     }
 

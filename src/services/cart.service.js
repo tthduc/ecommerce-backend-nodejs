@@ -9,7 +9,7 @@ class CartService {
         const query = { cart_userId: userId, cart_status: 'active' };
         const updateOrInsert = {
             $addToSet: { 
-                cart_products: products 
+                cart_products: product 
             }
         };
         const options = { upsert: true, new: true };
@@ -52,17 +52,19 @@ class CartService {
         return await this.updateCartQuantity({userId, product});
     }
 
-    static async addToCartV2({userId, shop_order_ids = {}}) {
+    static async addToCartV2({userId, shop_order_ids}) {
+        console.log('shop_order_ids', shop_order_ids);
         const { productId, quantity, oldQuantity } = shop_order_ids[0]?.item_products[0] || {};
-
+        
         // Validate product exists
         const foundProduct = await findProductById(productId);
         if (!foundProduct) throw new NotFoundError('Product not found');
 
-        // Validate product belongs to the specified shop
-        if (foundProduct.product_shop.toString() !== shop_order_ids[0]?.shopId) {
-            throw new NotFoundError('Product does not belong to the specified shop');
-        }
+        // console.log('foundProduct', foundProduct, shop_order_ids[0]?.shopId);
+        // // Validate product belongs to the specified shop
+        // if (foundProduct.product_shop.toString() !== shop_order_ids[0]?.shopId) {
+        //     throw new NotFoundError('Product does not belong to the specified shop');
+        // }
 
         if (quantity <= 0) {
             throw new NotFoundError('Quantity must be greater than zero');

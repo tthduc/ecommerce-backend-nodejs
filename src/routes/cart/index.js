@@ -20,6 +20,6 @@ router.post('/update', asyncHandler(cartController.update));
 router.delete('/', asyncHandler(cartController.remove));
 
 // get list cart
-router.post('/list', asyncHandler(cartController.listToCart));
+router.get('/', asyncHandler(cartController.listToCart));
 
 module.exports = router

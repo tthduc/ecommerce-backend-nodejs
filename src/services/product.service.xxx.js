@@ -40,6 +40,7 @@ class ProductFactory {
     }
 
     static createProduct(type, data) {
+        console.log('data service', data);
         const productClass = ProductFactory.productRegistry[type];
         if (!productClass) throw new BadRequestError('Invalid product type');
 
@@ -75,7 +76,7 @@ class ProductFactory {
     }
 
     static async findAllProducts({ limit = 50, sort = 'ctime', page = 1, filter = { isPublished: true } }) {
-        return await findAllProducts({ limit, sort, page, filter, select: ['_id', 'product_name', 'product_thumb', 'product_price', 'product_quantity', 'product_type'] });
+        return await findAllProducts({ limit, sort, page, filter, select: ['_id', 'product_name', 'product_thumb', 'product_price', 'product_quantity', 'product_type', 'product_shop'] });
     }
 
     static async findProductById({ product_id, unselect = [] }) {

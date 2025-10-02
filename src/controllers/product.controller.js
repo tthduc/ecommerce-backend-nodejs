@@ -18,6 +18,7 @@ class ProductController{
 
     createProduct = async (req, res, next) => {
         const { product_type } = req.body;
+        console.log('req.keyStore', req.keyStore);
         return CREATED.send(res, {
             message: 'Product created successfully',
             metadata: await ProductServiceV2.createProduct(
