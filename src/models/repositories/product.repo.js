@@ -96,6 +96,24 @@ const queryProduct = async ({ product_shop, limit = 50, skip = 0 }) => {
         .lean()
 }
 
+const checkProductByServer = async (products) => {
+    // check product is valid
+    return await Promise.all(products.map(async (product) => {
+        const foundProduct = await findProductById(product.productId);
+        if (!foundProduct) throw new BadRequestError(`Product not found: ${product.productId}`);
+
+        if (foundProduct.isPublished) throw new BadRequestError(`Product is not published: ${product.productId}`);
+
+        if (foundProduct.quantity < product.quantity) throw new BadRequestError(`Product is out of stock: ${product.productId}`);
+
+        return {
+            productId: foundProduct._id,
+            quantity: product.quantity,
+            price: foundProduct.price
+        }
+    }))
+}
+
 module.exports = {
     findAllDraftsForShop,
     findAllPublishedForShop,
@@ -104,5 +122,6 @@ module.exports = {
     searchProducts,
     findAllProducts,
     findProductById,
-    updateProductById
+    updateProductById,
+    checkProductByServer
 }
