@@ -5,6 +5,7 @@ const { findCartById } = require('../models/repositories/cart.repo');
 const { checkProductByServer } = require('../models/repositories/product.repo');
 const { getDiscountAmount } = require('../models/repositories/discount.repo');
 const { acquireLock, releaseLock } = require('./redis.service');
+const order = require('../models/order.model');
 
 class CheckoutService {
     /**
@@ -113,19 +114,27 @@ class CheckoutService {
             throw new NotFoundError('Order fail, your product out of stock');
         }
 
-        const newOrder = await OrderService.createNewOrder({
-            userId, 
-            shop_order_ids, 
-            checkoutOrder, 
-            user_address, 
-            user_payment
-        });
-
         // Tra lai khoa sau khi tru kho thanh cong
-        await releaseLock(accquiredLocks);
+        // await releaseLock(accquiredLocks);
+
+        const newOrder = await order.create({
+            order_userId: userId,
+            order_checkout: checkoutOrder,
+            order_shipping: user_address,
+            order_payment: user_payment,
+            order_products: products,
+        });
 
         return newOrder;
     }
+
+    static async getOrderByUser({userId, orderId}) {}
+
+    static async getOneOrderByUser({userId, orderId}) {}
+
+    static async cancelOrderByUser({userId, orderId}) {}
+
+    static async updateOrderStatusByShop({shopId, orderId, status}) {}
 }
 
 module.exports = CheckoutService;
