@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "ecommerce-backend-nodejs",
+			"path": "../.."
+		},
+		{
+			"path": "../../../../../Downloads/addSerial"
+		},
+		{
+			"path": "../../../../vms"
+		}
+	],
+	"settings": {
+		"java.compile.nullAnalysis.mode": "automatic"
+	}
+}
