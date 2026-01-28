@@ -71,10 +71,41 @@ class CommentService {
         }
     }
 
-    async deleteComment(commentId) {
+    async deleteComment({ commentId, productId }) {
         try {
-            const result = await CommentModel.findByIdAndUpdate(commentId, { isDeleted: true }, { new: true });
-            return result;
+            const foundProduct = await ProductModel.findById(productId);
+            if (!foundProduct) {
+                throw new Error('Product not found');
+            }
+
+            const comment = await CommentModel.findById(commentId);
+            if (!comment) {
+                throw new Error('Comment not found');
+            }
+
+            const leftValue = comment.comment_left;
+            const rightValue = comment.comment_right;
+            const width = rightValue - leftValue + 1;
+
+            // delete parent comment and children comments
+            // Mark the comment and its descendants as deleted
+            await CommentModel.updateMany(
+                { comment_left: { $gte: leftValue, $lte: rightValue } },
+                { isDeleted: true }
+            );
+
+            // Update the left and right values of remaining comments
+            await CommentModel.updateMany(
+                { comment_productId: productId, comment_left: { $gt: rightValue } },
+                { $inc: { comment_left: -width } }
+            );
+
+            await CommentModel.updateMany(
+                { comment_productId: productId, comment_right: { $gt: rightValue } },
+                { $inc: { comment_right: -width } }
+            );
+
+            return true;
         } catch (error) {
             throw new Error('Error deleting comment: ' + error.message);
         }

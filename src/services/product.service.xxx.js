@@ -2,6 +2,7 @@
 
 const { product, clothing, electronics } = require('../models/product.model')
 const { BadRequestError } = require('../core/error.response');
+
 const { 
     findAllDraftsForShop, 
     findAllPublishedForShop, 
@@ -107,8 +108,21 @@ class Product {
                 inven_shopId: this.product_shop,
                 inven_stock: this.product_quantity
             })
-            return newProduct;
+            
+            // push notification
+            await pushNotiToSystem({
+                notification_type: 'SHOP-001',
+                notification_senderId: this.product_shop,
+                notification_receiverId: 1,
+                notification_content: `A new product "${this.product_name}" has been added to your shop.`,
+                notification_options: {
+                    productId: newProduct._id,
+                    shopId: this.product_shop
+                }
+            })
         }
+
+        return newProduct;
     }
 
     async updateProduct({ product_id, payload }) {
